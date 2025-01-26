@@ -7,7 +7,7 @@ wheel wheelControl = {
 };
 
 void setup() {
-  delay(powerOnDelay);
+  // put your setup code here, to run once:
   pinMode(winSensorPin, INPUT);
   pinMode(wheelSensorPin, INPUT_PULLUP);
   pinMode(controlWheelSensorPin, INPUT_PULLUP);
@@ -15,12 +15,13 @@ void setup() {
   pinMode(motorACSignal, OUTPUT);
   pinMode(motorACON, OUTPUT);
   pinMode(wheelLifter, OUTPUT);
-  pinMode(ballFan, OUTPUT);
-  Serial.begin(serialBitRate);  
+  Serial.begin(serialBitRate);
+  
 }
 
 void loop() {
-  playRound();
+  // put your main code here, to run repeatedly:
+ playRound();
 }
 
 void playRound() {
@@ -34,56 +35,40 @@ void playRound() {
       .statusControlSensor = false,
       .isNumberRead = false
   };
-    
-  sendEvent(SNRS);
+
+  //wheelUp(&wheelControl);
   retrieveBall(&wheelControl);
   spinWheel(&wheelControl);
-  sendEvent(SBTS);
-  delay(bettingTime);
-  sendEvent(SBTE);
-  fireBall(&wheelControl, &newGameRound);
-  sendEvent(SRS);
   readNumber(&newGameRound);
-  sendEvent(SRE);
   stopWheel(&wheelControl);
-  sendEvent(SRF);
+  //delay(5000); //-->REMOVE THIS AFTER TESTS!!!!!!!!!!!
+  //wheelDown(&wheelControl);
+  //delay(5000);
+  
 }
 
-void sendError(String error) {
-  while(true) {
-    if(!wheelControl.errorCode){
-      Serial.println(error);
-      wheelControl.errorCode = error;
-    }
-    delay(1000);
-  }
+int sendError() {
+return 0;
 }
 
-void sendEvent(String event) {
-  if (event && event.length() > 2){
-    Serial.println(event);
-  }
-  else {
-    sendError(EEM);
-  }
-}
-
-void spinWheel(wheel *wheelControl) {
-  if (wheelControl->isWheelRotating == false) {
+int spinWheel(wheel *wheelControl) {
+  if (wheelControl->isWheelRotating == false){
     digitalWrite(motorACSignal, HIGH);
     delay(1000);
     digitalWrite(motorACON, HIGH);
     wheelControl->isWheelRotating = true;  
   }
+  return 0;
 }
 
-void stopWheel(wheel *wheelControl) {
+int stopWheel(wheel *wheelControl) {
   if(wheelControl->isWheelRotating == true){
     digitalWrite(motorACON, LOW);
-    delay(stopWheelDuration);
+    delay(9000);
     digitalWrite(motorACSignal, LOW);    
     wheelControl->isWheelRotating = false;  
   }
+  return 0;
 }
 
 void wheelUp(wheel *wheelControl) {
@@ -106,26 +91,14 @@ void wheelDown(wheel *wheelControl) {
   }
 }
 
-void retrieveBall(wheel *wheelControl) {
+int retrieveBall(wheel *wheelControl) {
   wheelUp(wheelControl);
-  delay(keepWheelUpDuration);
+  delay(3000);
   wheelDown(wheelControl);
+  return 0;
 }
 
-void fireBall(wheel *wheelControl, gameRound *gameRound) {
-  if(!digitalRead(ballSensorPin)) {
-    const unsigned long current_time = gameRound->roundTime;
-    while (current_time + fireBallDuration > gameRound->roundTime) {
-      digitalWrite(ballFan, HIGH);
-    }
-    digitalWrite(ballFan, LOW);
-  }
-  else{
-    sendError(EBNF);
-  }
-}
-
-void updateSensorStatus(int sensor, bool *sensorStatus) {
+int updateSensorStatus(int sensor, bool *sensorStatus) {
   
   if (!digitalRead(sensor)) {
     if (*sensorStatus == false) {
@@ -137,9 +110,10 @@ void updateSensorStatus(int sensor, bool *sensorStatus) {
       *sensorStatus = false;  
     }
   }
+  return 0;
 }
 
-void winSectorCheck(gameRound *gameRound){
+int winSectorCheck(gameRound *gameRound){
   
   if (gameRound->winningSectorCorrectCount == 0) {
     gameRound->winningSector = gameRound->wheelSectorCounter;
@@ -153,9 +127,10 @@ void winSectorCheck(gameRound *gameRound){
       gameRound->winningSectorCorrectCount = 0;
     }
   }
+  return 0;
 }
 
-void updateSectorCounter(gameRound *gameRound){
+int updateSectorCounter(gameRound *gameRound){
   if (gameRound->statusWheelSensor) {
     if (!gameRound->isSectorCounted) { 
       gameRound->wheelSectorCounter++;
@@ -170,9 +145,10 @@ void updateSectorCounter(gameRound *gameRound){
   }
 }
 
-void readNumber(gameRound *gameRound) {
+
+int readNumber(gameRound *gameRound) {
   gameRound->winningSectorCorrectCount = 0;
-  unsigned long current_time = gameRound->roundTime;
+
   while (gameRound->winningSectorCorrectCount < 3){
     updateSensorStatus(wheelSensorPin, &gameRound->statusWheelSensor);
     updateSensorStatus(winSensorPin, &gameRound->statusWinSensor);
@@ -187,9 +163,6 @@ void readNumber(gameRound *gameRound) {
     }
     else{
       gameRound->isNumberRead = false;  
-    }
-    if (current_time + maxReadNumberTime < gameRound->roundTime) {
-      sendError(ECRN);
     }
   }
   Serial.println(numberMap[gameRound->winningSector]);
