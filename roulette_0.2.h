@@ -3,29 +3,17 @@
 
 #include <stdbool.h>
 
-// Error(E) codes
-#define EBNF "BALL_NOT_FOUND"
-#define ECRN "CAN'T_READ_NUMBER"
-#define EMNS "MOTOR_NOT_SPINNING"
-#define EEM "EVENT MISSING"
+#define BDR "BALL_DIDNT_RETRIEVE"
+#define CRN "CANT_READ_NUMBER"
+#define MNS "MOTOR_NOT_SPINNING"
 
-// State(S) codes 
-#define SNRS "NEW_ROUND_START"
-#define SBTS "BETTING_TIME_START"
-#define SBTE "BETTING_TIME_END"
-#define SBF "BALL_FIRE"
-#define SRS "RESULT_START"
-#define SRE "RESULT_END"
-#define SRF "ROUND_FINISHED"
-
-const unsigned long maxRetrieveTime = 10000;
-const unsigned long maxReadNumberTime = 30000;
-const int lookingForBallDuration = 5000;
-const int fireBallDuration = 3000;
-const int keepWheelUpDuration = 2500;
-const int bettingTime = 18;
-const int powerOnDelay = 5000;
-const int stopWheelDuration = 9000;
+#define NRS "NEW_ROUND_START"
+#define BTS "BETTING_TIME_START"
+#define BTE "BETTING_TIME_END"
+#define BF "BALL_FIRE"
+#define RS "RESULT_START"
+#define RE "RESULT_END"
+#define RF "ROUND_FINISHED"
 
 const int winSensorPin = 2;
 const int wheelSensorPin = 3;
@@ -34,9 +22,9 @@ const int ballSensorPin = 5;
 const int retrieveSensorPin = 6;
 const int motorACSignal = 8;
 const int wheelLifter = 9;
-const int ballFan = 10;
 const int motorACON = 11;
 const int serialBitRate = 9600;
+const int bettingTime = 18;
 
 typedef struct gameRound {
   unsigned long roundTime;
@@ -46,6 +34,8 @@ typedef struct gameRound {
   bool statusWheelSensor;
   bool statusControlSensor;
   bool isNumberRead;
+  String statusCode;
+  String state;
   int winningSector;
   int winningSectorCorrectCount;
 } gameRound;
@@ -54,8 +44,6 @@ typedef struct wheelControl {
   bool isWheelRotating;
   bool isBallThere;
   bool isWheelUp;
-  String wheelState;
-  String errorCode;
 } wheel;
 
 const int numberMap[] = {
