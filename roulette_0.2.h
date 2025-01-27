@@ -19,11 +19,11 @@
 #define SRF "ROUND_FINISHED"
 
 const unsigned long maxRetrieveTime = 10000;
-const unsigned long maxReadNumberTime = 30000;
+const unsigned long maxReadNumberTime = 40000;
 const int lookingForBallDuration = 5000;
 const int fireBallDuration = 3000;
 const int keepWheelUpDuration = 2500;
-const int bettingTime = 18;
+const int bettingTime = 18000;
 const int powerOnDelay = 5000;
 const int stopWheelDuration = 9000;
 
@@ -54,8 +54,8 @@ typedef struct wheelControl {
   bool isWheelRotating;
   bool isBallThere;
   bool isWheelUp;
+  bool error;
   String wheelState;
-  String errorCode;
 } wheel;
 
 const int numberMap[] = {

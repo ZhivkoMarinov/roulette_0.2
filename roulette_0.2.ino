@@ -3,7 +3,8 @@
 wheel wheelControl = {
     .isWheelRotating = false,
     .isBallThere = false,
-    .isWheelUp = false  
+    .isWheelUp = false,
+    .error = false
 };
 
 void setup() {
@@ -16,7 +17,8 @@ void setup() {
   pinMode(motorACON, OUTPUT);
   pinMode(wheelLifter, OUTPUT);
   pinMode(ballFan, OUTPUT);
-  Serial.begin(serialBitRate);  
+  Serial.begin(serialBitRate);
+  emergencyStop();  
 }
 
 void loop() {
@@ -49,14 +51,21 @@ void playRound() {
   sendEvent(SRF);
 }
 
-void sendError(String error) {
+volatile void sendError(String error) {
   while(true) {
-    if(!wheelControl.errorCode){
+    if(!wheelControl.error){
       Serial.println(error);
-      wheelControl.errorCode = error;
+      wheelControl.error = true;
+      emergencyStop();
     }
     delay(1000);
   }
+}
+
+void emergencyStop() {
+  digitalWrite(motorACSignal, HIGH);
+  delay(stopWheelDuration);
+  digitalWrite(motorACON, LOW);
 }
 
 void sendEvent(String event) {
@@ -114,8 +123,8 @@ void retrieveBall(wheel *wheelControl) {
 
 void fireBall(wheel *wheelControl, gameRound *gameRound) {
   if(!digitalRead(ballSensorPin)) {
-    const unsigned long current_time = gameRound->roundTime;
-    while (current_time + fireBallDuration > gameRound->roundTime) {
+    const unsigned long current_time = millis();
+    while (current_time + fireBallDuration > millis()) {
       digitalWrite(ballFan, HIGH);
     }
     digitalWrite(ballFan, LOW);
@@ -172,7 +181,7 @@ void updateSectorCounter(gameRound *gameRound){
 
 void readNumber(gameRound *gameRound) {
   gameRound->winningSectorCorrectCount = 0;
-  unsigned long current_time = gameRound->roundTime;
+  unsigned long current_time = millis();
   while (gameRound->winningSectorCorrectCount < 3){
     updateSensorStatus(wheelSensorPin, &gameRound->statusWheelSensor);
     updateSensorStatus(winSensorPin, &gameRound->statusWinSensor);
@@ -188,7 +197,7 @@ void readNumber(gameRound *gameRound) {
     else{
       gameRound->isNumberRead = false;  
     }
-    if (current_time + maxReadNumberTime < gameRound->roundTime) {
+    if (current_time + maxReadNumberTime < millis()) {
       sendError(ECRN);
     }
   }
