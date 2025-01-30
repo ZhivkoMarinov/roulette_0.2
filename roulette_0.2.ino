@@ -12,6 +12,7 @@ void setup() {
   pinMode(winSensorPin, INPUT);
   pinMode(wheelSensorPin, INPUT_PULLUP);
   pinMode(controlWheelSensorPin, INPUT_PULLUP);
+  pinMode(ballSensorPin, INPUT_PULLUP);
   pinMode(retrieveSensorPin, INPUT_PULLUP);
   pinMode(motorACSignal, OUTPUT);
   pinMode(motorACON, OUTPUT);
@@ -28,13 +29,12 @@ void loop() {
 void playRound() {
   
   gameRound newGameRound = {
-      .roundTime = millis(),
-      .wheelSectorCounter = 0,
-      .isSectorCounted = false,
-      .statusWinSensor = false,
-      .statusWheelSensor = false,
-      .statusControlSensor = false,
-      .isNumberRead = false
+    .wheelSectorCounter = 0,
+    .isSectorCounted = false,
+    .statusWinSensor = false,
+    .statusWheelSensor = false,
+    .statusControlSensor = false,
+    .isNumberRead = false
   };
     
   sendEvent(SNRS);
@@ -44,11 +44,24 @@ void playRound() {
   delay(bettingTime);
   sendEvent(SBTE);
   fireBall(&wheelControl, &newGameRound);
+  //testFire();
   sendEvent(SRS);
   readNumber(&newGameRound);
   sendEvent(SRE);
   stopWheel(&wheelControl);
   sendEvent(SRF);
+  displayFreeRam();
+}
+
+void displayFreeRam() {
+  Serial.print("RAM left: ");
+  Serial.println(freeRam());  
+}
+
+int freeRam(){
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int) __brkval);  
 }
 
 volatile void sendError(String error) {
@@ -119,6 +132,12 @@ void retrieveBall(wheel *wheelControl) {
   wheelUp(wheelControl);
   delay(keepWheelUpDuration);
   wheelDown(wheelControl);
+}
+
+void testFire() {
+  digitalWrite(ballFan, HIGH);
+  delay(2500);
+  digitalWrite(ballFan, LOW);
 }
 
 void fireBall(wheel *wheelControl, gameRound *gameRound) {

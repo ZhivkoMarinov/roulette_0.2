@@ -39,7 +39,6 @@ const int motorACON = 11;
 const int serialBitRate = 9600;
 
 typedef struct gameRound {
-  unsigned long roundTime;
   int wheelSectorCounter;
   bool isSectorCounted;
   bool statusWinSensor;
