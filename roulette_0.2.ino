@@ -4,8 +4,11 @@ wheel wheelControl = {
     .isWheelRotating = false,
     .isBallThere = false,
     .isWheelUp = false,
-    .error = false
+    .error = false,
 };
+
+int attemptsToRetrieve = 0;
+int roundCounter = 0; //Remove after tests!
 
 void setup() {
   delay(powerOnDelay);
@@ -44,13 +47,13 @@ void playRound() {
   delay(bettingTime);
   sendEvent(SBTE);
   fireBall(&wheelControl, &newGameRound);
-  //testFire();
   sendEvent(SRS);
   readNumber(&newGameRound);
   sendEvent(SRE);
   stopWheel(&wheelControl);
   sendEvent(SRF);
-  displayFreeRam();
+  Serial.print("Round ID: ");
+  Serial.println(roundCounter);
 }
 
 void displayFreeRam() {
@@ -65,7 +68,12 @@ int freeRam(){
 }
 
 volatile void sendError(String error) {
-  while(true) {
+  if (error = EBNF) {
+    retrieveBall(&wheelControl);
+    playRound();
+  }
+
+  while(Serial.available() <= 0) {
     if(!wheelControl.error){
       Serial.println(error);
       wheelControl.error = true;
@@ -73,6 +81,9 @@ volatile void sendError(String error) {
     }
     delay(1000);
   }
+  Serial.print("Current round count: ");
+  Serial.println(roundCounter);
+  playRound();
 }
 
 void emergencyStop() {
@@ -93,7 +104,7 @@ void sendEvent(String event) {
 void spinWheel(wheel *wheelControl) {
   if (wheelControl->isWheelRotating == false) {
     digitalWrite(motorACSignal, HIGH);
-    delay(1000);
+    delay(1500);
     digitalWrite(motorACON, HIGH);
     wheelControl->isWheelRotating = true;  
   }
@@ -118,7 +129,16 @@ void wheelUp(wheel *wheelControl) {
   }
 }
 
-void wheelDown(wheel *wheelControl) {
+void wheelDownByTime(wheel *wheelControl) {
+  if(wheelControl->isWheelUp) {
+    digitalWrite(wheelLifter, HIGH);
+    delay(100);
+    digitalWrite(wheelLifter, LOW);
+    wheelControl->isWheelUp = false;
+  }
+}
+
+void wheelDownBySensor(wheel *wheelControl) {
   if(wheelControl->isWheelUp) {
     while(!digitalRead(retrieveSensorPin)) {
       digitalWrite(wheelLifter, HIGH);
@@ -131,7 +151,7 @@ void wheelDown(wheel *wheelControl) {
 void retrieveBall(wheel *wheelControl) {
   wheelUp(wheelControl);
   delay(keepWheelUpDuration);
-  wheelDown(wheelControl);
+  wheelDownByTime(wheelControl);
 }
 
 void testFire() {
@@ -222,4 +242,11 @@ void readNumber(gameRound *gameRound) {
   }
   Serial.println(numberMap[gameRound->winningSector]);
   gameRound->winningSectorCorrectCount = 0;
+  roundCounter++; //REMOVE THIS AFTER TESTS
+}
+
+void readNumberTest() {
+  delay(10000);
+  Serial.println("42");
+  roundCounter++;
 }

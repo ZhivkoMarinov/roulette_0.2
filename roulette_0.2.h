@@ -19,7 +19,7 @@
 #define SRF "ROUND_FINISHED"
 
 const unsigned long maxRetrieveTime = 10000;
-const unsigned long maxReadNumberTime = 40000;
+const unsigned long maxReadNumberTime = 60000;
 const int lookingForBallDuration = 5000;
 const int fireBallDuration = 3000;
 const int keepWheelUpDuration = 2500;
@@ -36,7 +36,7 @@ const int motorACSignal = 8;
 const int wheelLifter = 9;
 const int ballFan = 10;
 const int motorACON = 11;
-const int serialBitRate = 9600;
+const long int serialBitRate = 9600;
 
 typedef struct gameRound {
   int wheelSectorCounter;
@@ -54,7 +54,6 @@ typedef struct wheelControl {
   bool isBallThere;
   bool isWheelUp;
   bool error;
-  String wheelState;
 } wheel;
 
 const int numberMap[] = {
