@@ -8,7 +8,6 @@ wheel wheelControl = {
 };
 
 int attemptsToRetrieve = 0;
-int roundCounter = 0; //Remove after tests!
 
 void setup() {
   delay(powerOnDelay);
@@ -47,13 +46,9 @@ void playRound() {
   delay(bettingTime);
   sendEvent(SBTE);
   fireBall(&wheelControl, &newGameRound);
-  sendEvent(SRS);
   readNumber(&newGameRound);
-  sendEvent(SRE);
   stopWheel(&wheelControl);
   sendEvent(SRF);
-  Serial.print("Round ID: ");
-  Serial.println(roundCounter);
 }
 
 void displayFreeRam() {
@@ -68,22 +63,13 @@ int freeRam(){
 }
 
 volatile void sendError(String error) {
-  if (error = EBNF) {
-    retrieveBall(&wheelControl);
-    playRound();
-  }
-
-  while(Serial.available() <= 0) {
-    if(!wheelControl.error){
+  while (true){
+    if (!wheelControl.error){
       Serial.println(error);
       wheelControl.error = true;
-      emergencyStop();
     }
     delay(1000);
   }
-  Serial.print("Current round count: ");
-  Serial.println(roundCounter);
-  playRound();
 }
 
 void emergencyStop() {
@@ -96,15 +82,12 @@ void sendEvent(String event) {
   if (event && event.length() > 2){
     Serial.println(event);
   }
-  else {
-    sendError(EEM);
-  }
 }
 
 void spinWheel(wheel *wheelControl) {
   if (wheelControl->isWheelRotating == false) {
     digitalWrite(motorACSignal, HIGH);
-    delay(1500);
+    delay(delayBetweenACmotorRelays);
     digitalWrite(motorACON, HIGH);
     wheelControl->isWheelRotating = true;  
   }
@@ -132,7 +115,7 @@ void wheelUp(wheel *wheelControl) {
 void wheelDownByTime(wheel *wheelControl) {
   if(wheelControl->isWheelUp) {
     digitalWrite(wheelLifter, HIGH);
-    delay(100);
+    delay(delayWheelDown); //manually adjust by observing
     digitalWrite(wheelLifter, LOW);
     wheelControl->isWheelUp = false;
   }
@@ -221,13 +204,13 @@ void updateSectorCounter(gameRound *gameRound){
 void readNumber(gameRound *gameRound) {
   gameRound->winningSectorCorrectCount = 0;
   unsigned long current_time = millis();
-  while (gameRound->winningSectorCorrectCount < 3){
+  while (gameRound->winningSectorCorrectCount < correctCountThreshold){
     updateSensorStatus(wheelSensorPin, &gameRound->statusWheelSensor);
     updateSensorStatus(winSensorPin, &gameRound->statusWinSensor);
     updateSensorStatus(controlWheelSensorPin, &gameRound->statusControlSensor);
     updateSectorCounter(gameRound);
     
-    if (digitalRead(winSensorPin)){
+    if (digitalRead(winSensorPin) && gameRound->wheelSectorCounter < numbersArrayLength){
       if (gameRound->isNumberRead == false){
         gameRound->isNumberRead = true;
         winSectorCheck(gameRound);
@@ -240,13 +223,8 @@ void readNumber(gameRound *gameRound) {
       sendError(ECRN);
     }
   }
-  Serial.println(numberMap[gameRound->winningSector]);
+  //Serial.println(numbersArray[gameRound->winningSector]);
+  //gameRound->winningNumber = numbersArray[gameRound->winningSector];
+  sendEvent(SRS + ' ' + numbersArray[gameRound->winningSector]);
   gameRound->winningSectorCorrectCount = 0;
-  roundCounter++; //REMOVE THIS AFTER TESTS
-}
-
-void readNumberTest() {
-  delay(10000);
-  Serial.println("42");
-  roundCounter++;
 }
