@@ -67,6 +67,7 @@ volatile void sendError(String error) {
     if (!wheelControl.error){
       Serial.println(error);
       wheelControl.error = true;
+      emergencyStop();
     }
     delay(1000);
   }
