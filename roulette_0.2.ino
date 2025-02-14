@@ -48,7 +48,6 @@ void playRound() {
   fireBall(&wheelControl, &newGameRound);
   readNumber(&newGameRound);
   stopWheel(&wheelControl);
-  sendEvent(SRF);
 }
 
 void displayFreeRam() {
@@ -67,7 +66,6 @@ volatile void sendError(String error) {
     if (!wheelControl.error){
       Serial.println(error);
       wheelControl.error = true;
-      emergencyStop();
     }
     delay(1000);
   }
@@ -224,8 +222,8 @@ void readNumber(gameRound *gameRound) {
       sendError(ECRN);
     }
   }
-  //Serial.println(numbersArray[gameRound->winningSector]);
-  //gameRound->winningNumber = numbersArray[gameRound->winningSector];
-  sendEvent(SRS + ' ' + numbersArray[gameRound->winningSector]);
+  Serial.print(SRS);
+  Serial.print(" ");
+  Serial.println(numbersArray[gameRound->winningSector]);
   gameRound->winningSectorCorrectCount = 0;
 }

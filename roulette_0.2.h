@@ -13,9 +13,7 @@
 #define SNRS "NEW_ROUND_START"
 #define SBTS "BETTING_TIME_START"
 #define SBTE "BETTING_TIME_END"
-#define SBF "BALL_FIRE"
 #define SRS "RESULT"
-#define SRF "ROUND_FINISHED"
 
 const unsigned long maxRetrieveTime = 10000;
 const unsigned long maxReadNumberTime = 60000;
