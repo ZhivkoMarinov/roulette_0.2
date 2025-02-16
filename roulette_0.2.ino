@@ -66,6 +66,7 @@ volatile void sendError(String error) {
     if (!wheelControl.error){
       Serial.println(error);
       wheelControl.error = true;
+      emergencyStop();
     }
     delay(1000);
   }
@@ -134,12 +135,6 @@ void retrieveBall(wheel *wheelControl) {
   wheelUp(wheelControl);
   delay(keepWheelUpDuration);
   wheelDownByTime(wheelControl);
-}
-
-void testFire() {
-  digitalWrite(ballFan, HIGH);
-  delay(2500);
-  digitalWrite(ballFan, LOW);
 }
 
 void fireBall(wheel *wheelControl, gameRound *gameRound) {
