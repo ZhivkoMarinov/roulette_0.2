@@ -42,6 +42,7 @@ void playRound() {
   sendEvent(SNRS);
   retrieveBall(&wheelControl);
   spinWheel(&wheelControl);
+  randomDelay();
   sendEvent(SBTS);
   delay(bettingTime);
   sendEvent(SBTE);
@@ -82,6 +83,11 @@ void sendEvent(String event) {
   if (event && event.length() > 2){
     Serial.println(event);
   }
+}
+
+void randomDelay(){
+  const int randInt = random(5, 11);
+  delay(100 * randInt);
 }
 
 void spinWheel(wheel *wheelControl) {
